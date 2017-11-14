@@ -8,64 +8,76 @@
 #define nl ; printf("\n")
 #define max(a, b) ((a > b) ? (a) : (b))
 
-/* #### ESTRUTURAS DE DADOS PILHA E ARVORE #### */
+/* #### ESTRUTURAS DE DADOS FILA, PILHA E ARVORE #### */
 
 
-typedef struct arv {
+typedef struct _tree {
 	int conteudo, h;
-	struct arv *esq, *dir;
-} noh; noh *raiz;
+	struct _tree *esq, *dir;
+} arv; arv *raiz;
 
 
-typedef struct stk {
-   noh *endereco; 
-   struct stk *prox;
-} pilha; pilha *front, *rear;
+typedef struct _stack {
+   arv *endereco; 
+   struct _stack *prox;
+} pilha; pilha * top = NULL;
 
+
+typedef struct _queue {
+    arv * endereco;
+    struct _queue *next;
+} fila; fila * head = NULL;
 
 
 /* #### PSEUDO-FUNÇÕES PARA MANIPULAÇÃO DE PILHA #### */
 
 
-void empilha (noh * y); 
-noh * desempilha ();
+void empilha (arv *no);
+arv * desempilha ();
 void liberapilha ();
 
+
+/* #### PSEUDO-FUNÇÕES PARA MANIPULAÇÃO DE FILA #### */
+
+void enfileira (arv * endereco);
+arv * desenfileira ();
+void limpa_fila (fila * c);
 
 
 /* #### PSEUDO-FUNÇÕES PARA MANIPULAÇÃO DE ARVORE BINÁRIA DE BUSCA #### */
 
 
-void pre_ordem (noh * raiz);
-void em_ordem (noh * raiz);
-void pos_ordem (noh * raiz);
-void largura ();
-noh * busca (noh * raiz, int el);
-void liberaraiz (noh * ra);
-int height (noh * temp);
-int diff (noh * temp);
-noh * rr (noh * parent);
-noh * ll (noh * parent);
-noh * lr (noh * parent);
-noh * rl (noh * parent);
-noh * balance (noh * temp);
-noh * insert (noh * root, int conteudo);
-void set_height (noh * root, int height); 
-noh * delete (noh * root, int conteudo);
-noh * min_node (noh * node);
+void pre_ordem (arv * raiz);
+void em_ordem (arv * raiz);
+void pos_ordem (arv * raiz);
+void dfs ();
+void bfs ();
+arv * busca (arv * raiz, int el);
+void liberaraiz (arv * ra);
+int height (arv * temp);
+int diff (arv * temp);
+arv * rr (arv * parent);
+arv * ll (arv * parent);
+arv * lr (arv * parent);
+arv * rl (arv * parent);
+arv * balance (arv * temp);
+arv * insert (arv * root, int conteudo);
+void set_height (arv * root, int height); 
+arv * delete (arv * root, int conteudo);
+arv * min_node (arv * node);
 
 /* ############################################################# */
 
 int main(){
 	raiz = insert(raiz, 9);
-    raiz = insert(raiz, 5);
-    raiz = insert(raiz, 10);
-    raiz = insert(raiz, 0);
-    raiz = insert(raiz, 6);
-    raiz = insert(raiz, 11);
-    raiz = insert(raiz, -1);
-    raiz = insert(raiz, 1);
-    raiz = insert(raiz, 2);
+	raiz = insert(raiz, 5);
+	raiz = insert(raiz, 10);
+	raiz = insert(raiz, 0);
+	raiz = insert(raiz, 6);
+	raiz = insert(raiz, 11);
+	raiz = insert(raiz, -1);
+	raiz = insert(raiz, 1);
+	raiz = insert(raiz, 2);
 
 	set_height (raiz, 0);
 
@@ -73,7 +85,8 @@ int main(){
 	em_ordem (raiz) nl;
 	pos_ordem (raiz) nl;
 
-	largura () nl;
+	dfs () nl;
+	bfs () nl;
 
 	raiz = delete (raiz, 10) nl nl nl;
 
@@ -81,7 +94,8 @@ int main(){
 	em_ordem (raiz) nl;
 	pos_ordem (raiz) nl;
 
-	largura () nl;
+	dfs () nl;
+	bfs () nl;
 
 	liberaraiz(raiz);
 
@@ -91,45 +105,80 @@ int main(){
 /* #### FUNÇÕES PARA MANIPULAÇÃO DE PILHA #### */
 
 
-
-void empilha (noh * y) { 
-	pilha *tmp = malc(pilha);
-	tmp->endereco = y;
-	tmp->prox = NULL;
-	if (front == NULL && rear == NULL) {
-		front = rear = tmp;
-		return;
-	}
-	rear->prox = tmp;
-	rear = tmp;
+void empilha (arv *no) {
+	pilha *new = malc (pilha);
+	new->endereco = no;
+	if(top == NULL) new->prox = NULL;
+	else new->prox = top;
+	top = new;
 }
 
-
-noh * desempilha () {
-	if (front != NULL) {
-		pilha *tmp = front;
-		noh *z = tmp->endereco;
-		front = front->prox;
-		free(tmp);
-		return z;
+arv * desempilha () {
+	if(top != NULL) {
+		pilha *temp = top;
+		arv *x = top->endereco;
+		top = temp->prox;
+		free(temp);
+		return x;
 	} else return NULL;
 }
 
 
 void liberapilha () {
-	while (front != NULL) {
-		desempilha();
+	while (top != NULL) {
+		desempilha ();
 	}
 }
 
 
-/* ########################################### */
+/* #### FUNÇÕES PARA MANIPULAÇÃO DE FILA #### */
 
 
-/* #### FUNÇÕES PARA MANIPULAÇÃO DE ARVORE BINÁRIA DE BUSCA #### */
+void enfileira (arv * endereco) {
+	fila *new = malc(fila);
+	if (!new) return;
+
+	new->endereco = endereco;
+	new->next = head;
+
+	head = new;
+}
+
+arv * desenfileira () {
+	fila *current, *prev = NULL;
+	arv * tmp;
+
+	if (head == NULL) return NULL;
+
+	current = head;
+
+	while (current->next != NULL) {
+		prev = current;
+		current = current->next;
+	}
+
+	tmp = current->endereco;
+	free(current);
+
+	if (prev) prev->next = NULL;
+	else head = NULL;
+
+	return tmp;
+}
 
 
-void pre_ordem (noh * raiz) {
+void limpa_fila (fila * c) {
+	while (head != NULL) {
+		limpa_fila (c->next);
+		free(c);
+	}
+}
+
+
+/* #### FUNÇÕES PARA MANIPULAÇÃO DE AVL #### */
+
+
+void pre_ordem (arv * raiz) {
 	if(raiz != NULL){
 		printf ("%d [%d] - ", raiz->conteudo, raiz->h);
 		pre_ordem (raiz->esq);
@@ -138,7 +187,7 @@ void pre_ordem (noh * raiz) {
 }
 
 
-void em_ordem (noh * raiz) {
+void em_ordem (arv * raiz) {
 	if(raiz != NULL){
 		pre_ordem (raiz->esq);
 		printf ("%d [%d] - ", raiz->conteudo, raiz->h);
@@ -147,7 +196,7 @@ void em_ordem (noh * raiz) {
 }
 
 
-void pos_ordem (noh * raiz) {
+void pos_ordem (arv * raiz) {
 	if(raiz != NULL){
 		pre_ordem (raiz->esq);
 		pre_ordem (raiz->dir);
@@ -156,19 +205,32 @@ void pos_ordem (noh * raiz) {
 }
 
 
-void largura () {
-	noh *tmp = raiz;
-	while (tmp != NULL) {
+void dfs () {
+	arv *tmp = raiz;
+	empilha (tmp);
+	while (top) {
 		printf ("%d [%d] - ", tmp->conteudo, tmp->h);
-		if (tmp->esq != NULL) empilha (tmp->esq);
 		if (tmp->dir != NULL) empilha (tmp->dir);
+		if (tmp->esq != NULL) empilha (tmp->esq);
 		tmp = desempilha ();
 	}
 	liberapilha (); 
 }
 
 
-noh * busca (noh * raiz, int el) {
+void bfs () {
+	if (raiz == NULL) return;
+	enfileira (raiz);
+	while(head != NULL){
+		arv * tmp = desenfileira ();
+		printf ("%d [%d] - ", tmp->conteudo, tmp->h);
+		if (tmp->esq != NULL) enfileira (tmp->esq);
+		if (tmp->dir != NULL) enfileira (tmp->dir);
+	}
+	limpa_fila (head);
+}
+
+arv * busca (arv * raiz, int el) {
 	if (raiz != NULL) {
 		if (raiz->conteudo > el) return busca (raiz->esq, el);
 		if (raiz->conteudo < el) return busca (raiz->dir, el);
@@ -177,7 +239,7 @@ noh * busca (noh * raiz, int el) {
 }
 
 
-void liberaraiz (noh * ra) {
+void liberaraiz (arv * ra) {
 	if (ra == NULL) return;
 	liberaraiz (ra->esq);
 	liberaraiz (ra->dir);
@@ -186,128 +248,128 @@ void liberaraiz (noh * ra) {
 }
 
 
-void set_height (noh * root, int height) {
-   if (root != NULL) {
-      root->h = height;
-      set_height (root->esq, height+1);
-      set_height (root->dir, height+1);
-   }
+void set_height (arv * root, int height) {
+	if (root != NULL) {
+		root->h = height;
+		set_height (root->esq, height+1);
+		set_height (root->dir, height+1);
+	}
 }
 
 
-int height (noh * temp) {
-    int h = 0;
-    if (temp != NULL) {
-        int l_height = height(temp->esq), r_height = height(temp->dir);
-        int max_height = max(l_height, r_height);
-        h = max_height + 1;
-    }
-    return h;
+int height (arv * temp) {
+	int h = 0;
+	if (temp != NULL) {
+		int l_height = height(temp->esq), r_height = height(temp->dir);
+		int max_height = max(l_height, r_height);
+		h = max_height + 1;
+	}
+	return h;
 }
 
 
-int diff (noh * temp) {
+int diff (arv * temp) {
 	if (temp == NULL) return 0;
-    return height (temp->esq) - height (temp->dir);
+	return height (temp->esq) - height (temp->dir);
 }
 
 
-noh * rr (noh * parent) {
-    noh * temp = parent->dir;
-    parent->dir = temp->esq;
-    temp->esq = parent;
-    return temp;
+arv * rr (arv * parent) {
+	arv * temp = parent->dir;
+	parent->dir = temp->esq;
+	temp->esq = parent;
+	return temp;
 }
 
 
-noh * ll (noh * parent) {
-    noh * temp = parent->esq;
-    parent->esq = temp->dir;
-    temp->dir = parent;
-    return temp;
+arv * ll (arv * parent) {
+	arv * temp = parent->esq;
+	parent->esq = temp->dir;
+	temp->dir = parent;
+	return temp;
 }
 
 
-noh * lr (noh * parent){
-    noh * temp = parent->esq;
-    parent->esq = rr (temp);
-    return ll (parent);
+arv * lr (arv * parent){
+	arv * temp = parent->esq;
+	parent->esq = rr (temp);
+	return ll (parent);
 }
 
 
-noh * rl (noh *parent) {
-    noh * temp;
-    temp = parent->dir;
-    parent->dir = ll (temp);
-    return rr (parent);
+arv * rl (arv *parent) {
+	arv * temp;
+	temp = parent->dir;
+	parent->dir = ll (temp);
+	return rr (parent);
 }
 
 
-noh * balance (noh *temp) {
-    int bal_factor = diff (temp);
-    if (bal_factor > 1) {
-        if (diff(temp->esq) > 0) temp = ll (temp);
-        else temp = lr (temp);
-    } else if (bal_factor < -1) {
-        if (diff(temp->dir) > 0) temp = rl (temp);
-        else temp = rr (temp);
-    }
-    return temp;
+arv * balance (arv *temp) {
+	int bal_factor = diff (temp);
+	if (bal_factor > 1) {
+		if (diff(temp->esq) > 0) temp = ll (temp);
+		else temp = lr (temp);
+	} else if (bal_factor < -1) {
+		if (diff(temp->dir) > 0) temp = rl (temp);
+		else temp = rr (temp);
+	}
+	return temp;
 }
 
 
-noh * insert (noh * root, int conteudo) {
-    if (root == NULL) {
-        root = malc(noh);
-        root->conteudo = conteudo;
-        root->esq = NULL;
-        root->dir = NULL;
-        return root;
-    } else if (conteudo < root->conteudo) {
-        root->esq = insert (root->esq, conteudo);
-        root = balance (root);
-    } else if (conteudo > root->conteudo) {
-        root->dir = insert(root->dir, conteudo);
-        root = balance (root);
-    }
-    return root;
+arv * insert (arv * root, int conteudo) {
+	if (root == NULL) {
+		root = malc(arv);
+		root->conteudo = conteudo;
+		root->esq = NULL;
+		root->dir = NULL;
+		return root;
+	} else if (conteudo < root->conteudo) {
+		root->esq = insert (root->esq, conteudo);
+		root = balance (root);
+	} else if (conteudo > root->conteudo) {
+		root->dir = insert(root->dir, conteudo);
+		root = balance (root);
+	}
+	return root;
 }
 
 
-noh * delete (noh * root, int conteudo) {
-    if (root == NULL) return root;
+arv * delete (arv * root, int conteudo) {
+	if (root == NULL) return root;
 
-    if (conteudo < root->conteudo) root->esq = delete (root->esq, conteudo);
-    else if (conteudo > root->conteudo) root->dir = delete (root->dir, conteudo);
-    else {
-        if ((root->esq == NULL) || (root->dir == NULL)) {
-            noh * temp = root->esq ? root->esq : root->dir;
-            if (temp == NULL) {
-                temp = root;
-                root = NULL;
-            } else *root = *temp;
-            free(temp);
-        } else {
-            noh * temp = min_node (root->dir);
-            root->conteudo = temp->conteudo;
-            root->dir = delete (root->dir, temp->conteudo);
-        }
-    }
+	if (conteudo < root->conteudo) root->esq = delete (root->esq, conteudo);
+	else if (conteudo > root->conteudo) root->dir = delete (root->dir, conteudo);
+	else {
+		if ((root->esq == NULL) || (root->dir == NULL)) {
+			arv * temp = root->esq ? root->esq : root->dir;
+		if (temp == NULL) {
+			temp = root;
+			root = NULL;
+		} else *root = *temp;
+			free(temp);
+		} else {
+			arv * temp = min_node (root->dir);
+			root->conteudo = temp->conteudo;
+			root->dir = delete (root->dir, temp->conteudo);
+		}
+	}
 
-    if (root == NULL) return root;
+	if (root == NULL) return root;
 
-    root->h = 1 + max(height (root->esq), height (root->dir));
+	root->h = 1 + max(height (root->esq), height (root->dir));
 
-    if (diff (root) > 1 && diff (root->esq) >= 0) return ll (root);
-    if (diff (root) > 1 && diff (root->esq) < 0) return lr (root);
-    if (diff (root) < -1 && diff (root->dir) <= 0) return rr (root);
-    if (diff (root) < -1 && diff (root->dir) > 0) return rl (root);
-    
-    return root;
+	if (diff (root) > 1 && diff (root->esq) >= 0) return ll (root);
+	if (diff (root) > 1 && diff (root->esq) < 0) return lr (root);
+	if (diff (root) < -1 && diff (root->dir) <= 0) return rr (root);
+	if (diff (root) < -1 && diff (root->dir) > 0) return rl (root);
+
+	return root;
 }
 
-noh * min_node (noh * node) {
-    noh * current = node;
-    while (current->esq != NULL) current = current->esq;
-    return current;
+arv * min_node (arv * node) {
+	arv * current = node;
+	while (current->esq != NULL) current = current->esq;
+	return current;
 }
